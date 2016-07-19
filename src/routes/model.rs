@@ -2,7 +2,7 @@ use webutil::HtmlString;
 use routes::{RouteHandler, UrlParams};
 use modules::Modules;
 
-pub fn wrap<M: RouteModel, H: ModelRouteHandler<M>>(handler: H) -> ModelHandlerWrapper<M, H> {
+pub fn wrap_model<M: RouteModel, H: ModelRouteHandler<M>>(handler: H) -> ModelHandlerWrapper<M, H> {
     ModelHandlerWrapper {
         handler: handler,
         _model: ::std::marker::PhantomData,

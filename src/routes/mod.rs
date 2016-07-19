@@ -2,6 +2,9 @@ use webutil::{HtmlString, UriValue};
 use route_recognizer::{Router, Params};
 use modules::Modules;
 
+mod model;
+pub use self::model::{wrap_model, RouteModel, ModelHandlerWrapper, ModelRouteHandler};
+
 pub struct Routes {
     handlers: Router<HandlerEntry>
 }

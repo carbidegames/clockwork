@@ -10,11 +10,9 @@ extern crate webutil;
 mod clockwork;
 mod listener;
 mod modules;
-mod routes;
 mod worker;
 
-pub mod route_model;
+pub mod routes;
 
 pub use clockwork::{Clockwork, ClockworkJoinHandle};
 pub use modules::{Modules, Module};
-pub use routes::{Routes, RouteHandler, UrlParams};
