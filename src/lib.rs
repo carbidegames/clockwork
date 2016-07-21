@@ -6,6 +6,7 @@ extern crate route_recognizer;
 extern crate webutil;
 #[macro_use] extern crate try_opt;
 #[macro_use] extern crate mopa;
+extern crate regex;
 
 mod clockwork;
 mod listener;

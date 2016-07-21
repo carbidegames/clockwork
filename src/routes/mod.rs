@@ -2,8 +2,11 @@ use webutil::{HtmlString, UriValue};
 use route_recognizer::{Router, Params};
 use modules::Modules;
 
+mod files;
 mod model;
-pub use self::model::{wrap_model, RouteModel, ModelHandlerWrapper, ModelRouteHandler};
+
+pub use self::model::{model_handler, RouteModel, ModelHandlerWrapper, ModelRouteHandler};
+pub use self::files::file_handler;
 
 pub struct Routes {
     handlers: Router<HandlerEntry>
@@ -44,6 +47,7 @@ struct HandlerEntry {
     callback: Box<RouteHandler>,
 }
 
+#[derive(Debug)]
 pub struct UrlParams {
     internal: Params
 }
