@@ -1,4 +1,3 @@
-use webutil::HtmlString;
 use routes::{RouteHandler, UrlParams};
 use modules::Modules;
 
@@ -19,18 +18,18 @@ pub struct ModelHandlerWrapper<M: RouteModel, H: ModelRouteHandler<M>> {
 }
 
 impl<M: RouteModel, H: ModelRouteHandler<M>> RouteHandler for ModelHandlerWrapper<M, H> {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> HtmlString {
+    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8> {
         let model = M::from(url);
         self.handler.handle(modules, model)
     }
 }
 
 pub trait ModelRouteHandler<M: RouteModel>: Send + Sync {
-    fn handle(&self, modules: &Modules, model: M) -> HtmlString;
+    fn handle(&self, modules: &Modules, model: M) -> Vec<u8>;
 }
 
-impl<M: RouteModel, F: Fn(&Modules, M) -> HtmlString + Send + Sync> ModelRouteHandler<M> for F {
-    fn handle(&self, modules: &Modules, model: M) -> HtmlString {
+impl<M: RouteModel, F: Fn(&Modules, M) -> Vec<u8> + Send + Sync> ModelRouteHandler<M> for F {
+    fn handle(&self, modules: &Modules, model: M) -> Vec<u8> {
         self(modules, model)
     }
 }

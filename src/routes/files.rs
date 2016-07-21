@@ -43,7 +43,7 @@ impl FileHandler {
 }
 
 impl RouteHandler for FileHandler {
-    fn handle(&self, _: &Modules, url: UrlParams) -> HtmlString {
+    fn handle(&self, _: &Modules, url: UrlParams) -> Vec<u8> {
         // We manually handle the path processing just to be sure, first start by splitting it
         let path_param = url.get("").unwrap();
         let sections: Vec<_> = path_param.split(|c| c == '\\' || c == '/').collect();
@@ -54,7 +54,7 @@ impl RouteHandler for FileHandler {
             // Make sure this specific section of the path is valid
             if !self.is_section_valid(section) {
                 // TODO: Improve error handling
-                return HtmlString::bless("<h1>Invalid URL</h1>");
+                return HtmlString::bless("<h1>Invalid URL</h1>").into();
             }
 
             // Add it to the path
@@ -71,15 +71,11 @@ impl RouteHandler for FileHandler {
             // Read all the file's data
             let mut data = Vec::new();
             file.read_to_end(&mut data).unwrap();
-
-            // Now send it over
-            // TODO: Allow sending over data not as a HtmlString, or any string at all
-            let data = String::from_utf8(data).unwrap();
-            HtmlString::bless(data)
+            data
         } else {
             // We couldn't open the file, assume we didn't find it and return 404
             // TODO: Improve error handling
-            HtmlString::bless("<h1>404</h1>")
+            HtmlString::bless("<h1>404</h1>").into()
         }
     }
 }

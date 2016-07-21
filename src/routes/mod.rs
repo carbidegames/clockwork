@@ -25,7 +25,7 @@ impl Routes {
         });
     }
 
-    pub fn handle(&self, modules: &Modules, route: &str) -> HtmlString {
+    pub fn handle(&self, modules: &Modules, route: &str) -> Vec<u8> {
         let response = if let Ok(matc) = self.handlers.recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
@@ -36,7 +36,7 @@ impl Routes {
 
             entry.callback.handle(modules, url)
         } else {
-            HtmlString::bless("<html><body><h1>404</h1></body></html>")
+            HtmlString::bless("<html><body><h1>404</h1></body></html>").into()
         };
 
         response
@@ -45,6 +45,16 @@ impl Routes {
 
 struct HandlerEntry {
     callback: Box<RouteHandler>,
+}
+
+pub trait RouteHandler: Send + Sync {
+    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8>;
+}
+
+impl<F: Fn(&Modules, UrlParams) -> Vec<u8> + Send + Sync> RouteHandler for F {
+    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8> {
+        self(modules, url)
+    }
 }
 
 #[derive(Debug)]
@@ -57,15 +67,5 @@ impl UrlParams {
         let raw = try_opt!(self.internal.find(key));
         let val = UriValue::bless(raw);
         Some(val.unescape())
-    }
-}
-
-pub trait RouteHandler: Send + Sync {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> HtmlString;
-}
-
-impl<F: Fn(&Modules, UrlParams) -> HtmlString + Send + Sync> RouteHandler for F {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> HtmlString {
-        self(modules, url)
     }
 }

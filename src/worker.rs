@@ -29,7 +29,7 @@ fn handle_request(request: RequestToken, modules: &Modules, routes: &Routes) {
     };
 
     // Write a response back to the hyper handler
-    request.complete(response_data.raw);
+    request.complete(response_data);
 }
 
 pub enum WorkerCommand {
@@ -42,11 +42,11 @@ pub enum WorkerCommand {
 pub struct RequestToken {
     uri: RequestUri,
     ctrl: Control,
-    sender: Sender<String>
+    sender: Sender<Vec<u8>>,
 }
 
 impl RequestToken {
-    pub fn new(uri: RequestUri, ctrl: Control, sender: Sender<String>) -> Self {
+    pub fn new(uri: RequestUri, ctrl: Control, sender: Sender<Vec<u8>>) -> Self {
         RequestToken {
             uri: uri,
             ctrl: ctrl,
@@ -58,7 +58,7 @@ impl RequestToken {
         &self.uri
     }
 
-    fn complete(self, response_data: String) {
+    fn complete(self, response_data: Vec<u8>) {
         self.sender.send(response_data).unwrap();
         self.ctrl.ready(Next::write()).unwrap();
     }

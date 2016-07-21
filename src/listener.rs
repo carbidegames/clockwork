@@ -31,8 +31,8 @@ pub struct HyperHandler {
     uri: Option<RequestUri>,
     ctrl: Option<Control>,
     queue: Arc<MsQueue<WorkerCommand>>,
-    receiver: Option<Receiver<String>>,
-    data: Option<String>,
+    receiver: Option<Receiver<Vec<u8>>>,
+    data: Option<Vec<u8>>,
 }
 
 impl HyperHandler {
@@ -80,13 +80,13 @@ impl Handler<HttpStream> for HyperHandler {
         // Build up the response header
         response.set_status(StatusCode::Ok);
         let headers = response.headers_mut();
-        headers.set(ContentLength(self.data.as_ref().unwrap().as_bytes().len() as u64));
+        headers.set(ContentLength(self.data.as_ref().unwrap().len() as u64));
 
         Next::write()
     }
 
     fn on_response_writable(&mut self, response: &mut Encoder<HttpStream>) -> Next {
-        let bytes = self.data.as_ref().unwrap().as_bytes();
+        let bytes = self.data.as_ref().unwrap();
         response.write(bytes).unwrap();
 
         Next::end()
