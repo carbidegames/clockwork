@@ -17,11 +17,18 @@ pub struct FileHandler {
 
 impl RouteHandler for FileHandler {
     fn handle(&self, _: &Modules, url: UrlParams) -> Vec<u8> {
-        // Append the relative path to the root directory, then canonicalize it to weed out /../
+        // Append the relative path to the root directory
         let path_param = url.get("").unwrap();
         let mut path = self.directory.clone();
         path.push(path_param);
-        let path = path.canonicalize().unwrap();
+
+        // Canonicalize it to weed out /../
+        // If we couldn't canonicalize, the file doesn't exit
+        let path = if let Ok(path) = path.canonicalize() {
+            path
+        } else {
+            return HtmlString::bless("<h1>404</h1>").into();
+        };
 
         // Make sure the path is still within the base directory and is pointing to a file
         if !path.starts_with(&self.directory) && !path.is_file() {
@@ -30,20 +37,14 @@ impl RouteHandler for FileHandler {
         }
 
         // We've got a valid path, open up the file
-        let file = OpenOptions::new()
+        let mut file = OpenOptions::new()
             .read(true)
-            .open(path);
+            .open(path)
+            .unwrap(); // At this point we know it exists
 
-        // Check if we could actually open it
-        if let Ok(mut file) = file {
-            // Read all the file's data
-            let mut data = Vec::new();
-            file.read_to_end(&mut data).unwrap();
-            data
-        } else {
-            // We couldn't open the file, assume we didn't find it and return 404
-            // TODO: Improve error handling
-            HtmlString::bless("<h1>404</h1>").into()
-        }
+        // Read all the file's data
+        let mut data = Vec::new();
+        file.read_to_end(&mut data).unwrap();
+        data
     }
 }
