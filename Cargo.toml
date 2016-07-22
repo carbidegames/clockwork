@@ -10,6 +10,6 @@ hyper = {git = "https://github.com/hyperium/hyper.git"}
 log = "0.3.6"
 num_cpus = "0.2.13"
 route-recognizer = "0.1.11"
-webutil = {path = "../webutil"}
 try_opt = "0.1.1"
 mopa = "0.2.2"
+webapp = {path = "../webapp"}

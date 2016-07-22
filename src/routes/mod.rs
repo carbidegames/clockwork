@@ -1,4 +1,4 @@
-use webutil::{HtmlString, UriValue};
+use webapp::{HtmlString, UriValue};
 use route_recognizer::{Router, Params};
 use modules::Modules;
 

@@ -3,7 +3,7 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use modules::Modules;
 use routes::{RouteHandler, UrlParams};
-use webutil::HtmlString;
+use webapp::HtmlString;
 
 pub fn file_handler<D: AsRef<Path>>(directory: D) -> FileHandler {
     FileHandler {
