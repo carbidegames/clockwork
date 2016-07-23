@@ -1,4 +1,6 @@
-use webapp::{Application, Responder, BodyResponder, Request, Header};
+use webapp::{Application, Responder, BodyResponder, Request};
+use webapp::status::StatusCode;
+use webapp::header::{Headers, ContentLength};
 use routes::Routes;
 use modules::Modules;
 
@@ -21,10 +23,14 @@ impl Application for Clockwork {
         // Pass the request to the router
         let result = self.routes.handle(&self.modules, &request.path);
 
-        // Reply to the request with the data from the route
-        let header = Header {};
-        let mut body = responder.start(header);
+        // Send the HTTP header to respond with
+        let mut headers = Headers::new();
+        headers.set(ContentLength(result.len() as u64));
+        let mut body = responder.start(StatusCode::Ok, headers);
+
+        // Send the body of our response
         body.send(result);
+
         body.finish();
     }
 }

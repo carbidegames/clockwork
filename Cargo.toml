@@ -5,10 +5,7 @@ authors = ["Layl <LaylConway@users.noreply.github.com>"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-crossbeam = "0.2.9"
-hyper = {git = "https://github.com/hyperium/hyper.git"}
 log = "0.3.6"
-num_cpus = "0.2.13"
 route-recognizer = "0.1.11"
 try_opt = "0.1.1"
 mopa = "0.2.2"
