@@ -1,4 +1,5 @@
-use webapp::{HtmlString, UriValue};
+use webapp::UriValue;
+use webapp::status::StatusCode;
 use route_recognizer::{Router, Params};
 use modules::Modules;
 
@@ -25,8 +26,8 @@ impl Routes {
         });
     }
 
-    pub fn handle(&self, modules: &Modules, route: &str) -> Vec<u8> {
-        let response = if let Ok(matc) = self.handlers.recognize(route) {
+    pub fn handle(&self, modules: &Modules, route: &str) -> Result<Vec<u8>, StatusCode> {
+        if let Ok(matc) = self.handlers.recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
 
@@ -34,12 +35,10 @@ impl Routes {
                 internal: params
             };
 
-            entry.callback.handle(modules, url)
+            Ok(entry.callback.handle(modules, url))
         } else {
-            HtmlString::bless("<html><body><h1>404</h1></body></html>").into()
-        };
-
-        response
+            Err(StatusCode::NotFound)
+        }
     }
 }
 
