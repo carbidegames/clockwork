@@ -1,5 +1,6 @@
 use webapp::UriValue;
 use webapp::status::StatusCode;
+use webapp::method::Method;
 use route_recognizer::{Router, Params};
 use modules::Modules;
 
@@ -10,24 +11,32 @@ pub use self::model::{model_handler, RouteModel, ModelHandlerWrapper, ModelRoute
 pub use self::files::file_handler;
 
 pub struct Routes {
-    handlers: Router<HandlerEntry>
+    get_handlers: Router<Box<RouteHandler>>,
+    post_handlers: Router<Box<RouteHandler>>,
 }
 
 impl Routes {
     pub fn new() -> Self {
         Routes {
-            handlers: Router::new()
+            get_handlers: Router::new(),
+            post_handlers: Router::new()
         }
     }
 
-    pub fn register<H: RouteHandler + 'static>(&mut self, route: &str, handler: H) {
-        self.handlers.add(route, HandlerEntry {
-            callback: Box::new(handler),
-        });
+    pub fn get<H: RouteHandler + 'static>(&mut self, route: &str, handler: H) {
+        self.register(Method::Get, route, handler);
     }
 
-    pub fn handle(&self, modules: &Modules, route: &str) -> Result<Vec<u8>, StatusCode> {
-        if let Ok(matc) = self.handlers.recognize(route) {
+    pub fn post<H: RouteHandler + 'static>(&mut self, route: &str, handler: H) {
+        self.register(Method::Post, route, handler);
+    }
+
+    pub fn register<H: RouteHandler + 'static>(&mut self, method: Method, route: &str, handler: H) {
+        self.get_router_mut(method).add(route, Box::new(handler));
+    }
+
+    pub fn handle(&self, modules: &Modules, method: Method, route: &str) -> Result<Vec<u8>, StatusCode> {
+        if let Ok(matc) = self.get_router(method).recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
 
@@ -35,15 +44,27 @@ impl Routes {
                 internal: params
             };
 
-            Ok(entry.callback.handle(modules, url))
+            Ok(entry.handle(modules, url))
         } else {
             Err(StatusCode::NotFound)
         }
     }
-}
 
-struct HandlerEntry {
-    callback: Box<RouteHandler>,
+    fn get_router(&self, method: Method) -> &Router<Box<RouteHandler>> {
+        match method {
+            Method::Get => &self.get_handlers,
+            Method::Post => &self.post_handlers,
+            _ => unimplemented!(), // TODO: IMPORTANT FOR PRODUCTION Do not panic
+        }
+    }
+
+    fn get_router_mut(&mut self, method: Method) -> &mut Router<Box<RouteHandler>> {
+        match method {
+            Method::Get => &mut self.get_handlers,
+            Method::Post => &mut self.post_handlers,
+            _ => unimplemented!(), // TODO: IMPORTANT FOR PRODUCTION Do not panic
+        }
+    }
 }
 
 pub trait RouteHandler: Send + Sync {
