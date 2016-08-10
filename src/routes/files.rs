@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 use std::fs::OpenOptions;
 use std::io::Read;
 use modules::Modules;
-use routes::{RouteHandler, UrlParams};
+use routes::{RouteHandler, UriParams, BodyParams};
 use webapp::HtmlString;
 
 pub fn file_handler<D: AsRef<Path>>(directory: D) -> FileHandler {
@@ -16,7 +16,7 @@ pub struct FileHandler {
 }
 
 impl RouteHandler for FileHandler {
-    fn handle(&self, _: &Modules, url: UrlParams) -> Vec<u8> {
+    fn handle(&self, _: &Modules, url: UriParams, _body: BodyParams) -> Vec<u8> {
         // Append the relative path to the root directory
         let path_param = url.get("").unwrap();
         let mut path = self.directory.clone();

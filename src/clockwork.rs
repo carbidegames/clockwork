@@ -23,7 +23,7 @@ impl<E: ErrorHandler> Clockwork<E> {
 impl<E: ErrorHandler> Application for Clockwork<E> {
     fn on_request<R: Responder>(&self, request: Request, responder: R) {
         // Pass the request to the router
-        let result = self.routes.handle(&self.modules, request.method, &request.path);
+        let result = self.routes.handle(&self.modules, request.method, &request.path, request.body);
 
         // Check the route's result
         let (status, body) = match result {

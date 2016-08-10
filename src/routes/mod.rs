@@ -1,14 +1,15 @@
-use webapp::UriValue;
+use route_recognizer::Router;
 use webapp::status::StatusCode;
 use webapp::method::Method;
-use route_recognizer::{Router, Params};
 use modules::Modules;
 
 mod files;
 mod model;
+mod params;
 
 pub use self::model::{model_handler, RouteModel, ModelHandlerWrapper, ModelRouteHandler};
 pub use self::files::file_handler;
+pub use self::params::{UriParams, BodyParams};
 
 pub struct Routes {
     get_handlers: Router<Box<RouteHandler>>,
@@ -35,16 +36,16 @@ impl Routes {
         self.get_router_mut(method).add(route, Box::new(handler));
     }
 
-    pub fn handle(&self, modules: &Modules, method: Method, route: &str) -> Result<Vec<u8>, StatusCode> {
+    pub fn handle(&self, modules: &Modules, method: Method, route: &str, body: Vec<u8>)
+     -> Result<Vec<u8>, StatusCode> {
         if let Ok(matc) = self.get_router(method).recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
 
-            let url = UrlParams {
-                internal: params
-            };
+            let url = params::url_params_from_route_recognizer(params);
+            let body = params::body_params_from_data(body);
 
-            Ok(entry.handle(modules, url))
+            Ok(entry.handle(modules, url, body))
         } else {
             Err(StatusCode::NotFound)
         }
@@ -68,24 +69,11 @@ impl Routes {
 }
 
 pub trait RouteHandler: Send + Sync {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8>;
+    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> Vec<u8>;
 }
 
-impl<F: Fn(&Modules, UrlParams) -> Vec<u8> + Send + Sync> RouteHandler for F {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8> {
-        self(modules, url)
-    }
-}
-
-#[derive(Debug)]
-pub struct UrlParams {
-    internal: Params
-}
-
-impl UrlParams {
-    pub fn get(&self, key: &str) -> Option<String> {
-        let raw = try_opt!(self.internal.find(key));
-        let val = UriValue::bless(raw);
-        Some(val.unescape())
+impl<F: Fn(&Modules, UriParams, BodyParams) -> Vec<u8> + Send + Sync> RouteHandler for F {
+    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> Vec<u8> {
+        self(modules, url, body)
     }
 }

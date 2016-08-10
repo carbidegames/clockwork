@@ -1,4 +1,4 @@
-use routes::{RouteHandler, UrlParams};
+use routes::{RouteHandler, UriParams, BodyParams};
 use modules::Modules;
 
 pub fn model_handler<M: RouteModel, H: ModelRouteHandler<M>>(handler: H) -> ModelHandlerWrapper<M, H> {
@@ -9,7 +9,7 @@ pub fn model_handler<M: RouteModel, H: ModelRouteHandler<M>>(handler: H) -> Mode
 }
 
 pub trait RouteModel: Send + Sync {
-    fn from(url: UrlParams) -> Self;
+    fn from(url: UriParams, body: BodyParams) -> Self;
 }
 
 pub struct ModelHandlerWrapper<M: RouteModel, H: ModelRouteHandler<M>> {
@@ -18,8 +18,8 @@ pub struct ModelHandlerWrapper<M: RouteModel, H: ModelRouteHandler<M>> {
 }
 
 impl<M: RouteModel, H: ModelRouteHandler<M>> RouteHandler for ModelHandlerWrapper<M, H> {
-    fn handle(&self, modules: &Modules, url: UrlParams) -> Vec<u8> {
-        let model = M::from(url);
+    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> Vec<u8> {
+        let model = M::from(url, body);
         self.handler.handle(modules, model)
     }
 }
