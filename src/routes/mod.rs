@@ -1,11 +1,12 @@
-use route_recognizer::Router;
-use webapp::status::StatusCode;
-use webapp::method::Method;
-use modules::Modules;
-
 mod files;
 mod model;
 mod params;
+
+use route_recognizer::Router;
+use webapp::HtmlString;
+use webapp::status::StatusCode;
+use webapp::method::Method;
+use modules::Modules;
 
 pub use self::model::{model_handler, RouteModel, ModelHandlerWrapper, ModelRouteHandler};
 pub use self::files::file_handler;
@@ -72,7 +73,7 @@ impl Routes {
 }
 
 pub enum RouteResult {
-    Html(String),
+    Html(HtmlString),
     Raw(Vec<u8>),
     Redirect(String),
     Error(StatusCode)
