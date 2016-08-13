@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
 use std::fs::OpenOptions;
 use std::io::Read;
+use webapp::status::StatusCode;
 use modules::Modules;
-use routes::{RouteHandler, UriParams, BodyParams};
-use webapp::HtmlString;
+use routes::{RouteHandler, UriParams, BodyParams, RouteResult};
 
 pub fn file_handler<D: AsRef<Path>>(directory: D) -> FileHandler {
     FileHandler {
@@ -16,7 +16,7 @@ pub struct FileHandler {
 }
 
 impl RouteHandler for FileHandler {
-    fn handle(&self, _: &Modules, url: UriParams, _body: BodyParams) -> Vec<u8> {
+    fn handle(&self, _: &Modules, url: UriParams, _body: BodyParams) -> RouteResult {
         // Append the relative path to the root directory
         let path_param = url.get("").unwrap();
         let mut path = self.directory.clone();
@@ -27,13 +27,13 @@ impl RouteHandler for FileHandler {
         let path = if let Ok(path) = path.canonicalize() {
             path
         } else {
-            return HtmlString::bless("<h1>404</h1>").into();
+            return RouteResult::Error(StatusCode::NotFound);
         };
 
         // Make sure the path is still within the base directory and is pointing to a file
         if !path.starts_with(&self.directory) && !path.is_file() {
             // TODO: Improve error handling
-            return HtmlString::bless("<h1>Invalid URL</h1>").into()
+            return RouteResult::Error(StatusCode::NotFound);
         }
 
         // We've got a valid path, open up the file
@@ -45,6 +45,6 @@ impl RouteHandler for FileHandler {
         // Read all the file's data
         let mut data = Vec::new();
         file.read_to_end(&mut data).unwrap();
-        data
+        RouteResult::Raw(data)
     }
 }

@@ -1,7 +1,7 @@
 use webapp::{Application, Responder, BodyResponder, Request};
 use webapp::status::StatusCode;
-use webapp::header::{Headers, ContentLength};
-use routes::Routes;
+use webapp::header::{Headers, ContentLength, Location};
+use routes::{Routes, RouteResult};
 use modules::Modules;
 
 pub struct Clockwork<E> {
@@ -26,21 +26,23 @@ impl<E: ErrorHandler> Application for Clockwork<E> {
         let result = self.routes.handle(&self.modules, request.method, &request.path, request.body);
 
         // Check the route's result
-        let (status, body) = match result {
-            Ok(body) => {
-                // No error
-                (StatusCode::Ok, body)
-            }
-            Err(status) => {
+        let (status, body, location): (StatusCode, Vec<u8>, Option<String>) = match result {
+            RouteResult::Html(body) => (StatusCode::Ok, body.into(), None),
+            RouteResult::Raw(body) => (StatusCode::Ok, body, None),
+            RouteResult::Redirect(location) => (StatusCode::SeeOther, Vec::new(), Some(location)),
+            RouteResult::Error(status) => {
                 // An error happened, defer to the error handler
                 let body = self.error_handler.handle(&self.modules, status);
-                (status, body)
+                (status, body, None)
             }
         };
 
         // Construct the headers for the response
         let mut headers = Headers::new();
         headers.set(ContentLength(body.len() as u64));
+        if let Some(location) = location {
+            headers.set(Location(location));
+        }
 
         // Send the response
         let mut body_responder = responder.start(status, headers);

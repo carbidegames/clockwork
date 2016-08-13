@@ -37,7 +37,7 @@ impl Routes {
     }
 
     pub fn handle(&self, modules: &Modules, method: Method, route: &str, body: Vec<u8>)
-     -> Result<Vec<u8>, StatusCode> {
+     -> RouteResult {
         if let Ok(matc) = self.get_router(method).recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
@@ -45,9 +45,12 @@ impl Routes {
             let url = params::url_params_from_route_recognizer(params);
             let body = params::body_params_from_data(body);
 
-            Ok(entry.handle(modules, url, body))
+            // Run the handler for this route
+            let result = entry.handle(modules, url, body);
+
+            result
         } else {
-            Err(StatusCode::NotFound)
+            RouteResult::Error(StatusCode::NotFound)
         }
     }
 
@@ -68,12 +71,19 @@ impl Routes {
     }
 }
 
-pub trait RouteHandler: Send + Sync {
-    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> Vec<u8>;
+pub enum RouteResult {
+    Html(String),
+    Raw(Vec<u8>),
+    Redirect(String),
+    Error(StatusCode)
 }
 
-impl<F: Fn(&Modules, UriParams, BodyParams) -> Vec<u8> + Send + Sync> RouteHandler for F {
-    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> Vec<u8> {
+pub trait RouteHandler: Send + Sync {
+    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> RouteResult;
+}
+
+impl<F: Fn(&Modules, UriParams, BodyParams) -> RouteResult + Send + Sync> RouteHandler for F {
+    fn handle(&self, modules: &Modules, url: UriParams, body: BodyParams) -> RouteResult {
         self(modules, url, body)
     }
 }
