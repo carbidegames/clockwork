@@ -39,7 +39,7 @@ impl Routes {
 
     pub fn handle(&self, modules: &Modules, method: Method, route: &str, body: Vec<u8>)
      -> RouteResult {
-        if let Ok(matc) = self.get_router(method).recognize(route.trim_right_matches('/')) {
+        if let Ok(matc) = self.get_router(method).recognize(route) {
             let params = matc.params;
             let entry = matc.handler;
 
