@@ -31,6 +31,10 @@ impl BodyParams {
             internal: form_urlencoded::parse(&self.data).into_owned().collect()
         }
     }
+
+    pub fn as_text(&self) -> Option<&str> {
+        ::std::str::from_utf8(&self.data).ok()
+    }
 }
 
 pub fn body_params_from_data(data: Vec<u8>) -> BodyParams {
