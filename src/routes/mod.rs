@@ -59,7 +59,10 @@ impl Routes {
         match method {
             Method::Get => &self.get_handlers,
             Method::Post => &self.post_handlers,
-            _ => unimplemented!(), // TODO: IMPORTANT FOR PRODUCTION Do not panic
+            _ => {
+                warn!("Unsupported method {}, returning GET", method);
+                &mut self.get_handlers
+            }
         }
     }
 
@@ -67,7 +70,10 @@ impl Routes {
         match method {
             Method::Get => &mut self.get_handlers,
             Method::Post => &mut self.post_handlers,
-            _ => unimplemented!(), // TODO: IMPORTANT FOR PRODUCTION Do not panic
+            _ => {
+                warn!("Unsupported method {}, returning GET", method);
+                &mut self.get_handlers
+            }
         }
     }
 }
