@@ -61,7 +61,7 @@ impl Routes {
             Method::Post => &self.post_handlers,
             _ => {
                 warn!("Unsupported method {}, returning GET", method);
-                &mut self.get_handlers
+                &self.get_handlers
             }
         }
     }
