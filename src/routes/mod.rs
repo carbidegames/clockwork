@@ -15,13 +15,17 @@ pub use self::params::{UriParams, BodyParams};
 pub struct Routes {
     get_handlers: Router<Box<RouteHandler>>,
     post_handlers: Router<Box<RouteHandler>>,
+    patch_handlers: Router<Box<RouteHandler>>,
+    delete_handlers: Router<Box<RouteHandler>>,
 }
 
 impl Routes {
     pub fn new() -> Self {
         Routes {
             get_handlers: Router::new(),
-            post_handlers: Router::new()
+            post_handlers: Router::new(),
+            patch_handlers: Router::new(),
+            delete_handlers: Router::new(),
         }
     }
 
@@ -67,6 +71,8 @@ impl Routes {
         match method {
             Method::Get => &self.get_handlers,
             Method::Post => &self.post_handlers,
+            Method::Patch => &self.patch_handlers,
+            Method::Delete => &self.delete_handlers,
             _ => {
                 warn!("Unsupported method {}, returning GET", method);
                 &self.get_handlers
@@ -78,6 +84,8 @@ impl Routes {
         match method {
             Method::Get => &mut self.get_handlers,
             Method::Post => &mut self.post_handlers,
+            Method::Patch => &mut self.patch_handlers,
+            Method::Delete => &mut self.delete_handlers,
             _ => {
                 warn!("Unsupported method {}, returning GET", method);
                 &mut self.get_handlers
