@@ -33,6 +33,14 @@ impl Routes {
         self.register(Method::Post, route, handler);
     }
 
+    pub fn patch<H: RouteHandler + 'static>(&mut self, route: &str, handler: H) {
+        self.register(Method::Patch, route, handler);
+    }
+
+    pub fn delete<H: RouteHandler + 'static>(&mut self, route: &str, handler: H) {
+        self.register(Method::Delete, route, handler);
+    }
+
     pub fn register<H: RouteHandler + 'static>(&mut self, method: Method, route: &str, handler: H) {
         self.get_router_mut(method).add(route, Box::new(handler));
     }
